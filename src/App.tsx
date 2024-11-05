@@ -1,6 +1,24 @@
 import React from "react";
 import "./App.css";
 
+type LinkData = {
+  label: string;
+  href: string;
+  type: "train" | "bus";
+};
+
+type RevisionStatus = "O" | "N";
+const revisionStates: Record<"before" | "after", RevisionStatus> = {
+  before: "O",
+  after: "N",
+};
+
+const busStops = {
+  miyazaki_eki: "000LM0001",
+  depato_mae: "000LM3002",
+  karino_mae: "000G00129",
+};
+
 const getTrainLink = (direction: "going" | "returning"): string => {
   const now = new Date();
   const year = now.getFullYear();
@@ -15,18 +33,16 @@ const getTrainLink = (direction: "going" | "returning"): string => {
   return `${baseUrl}&Dym=${year}${month}&Ddd=${day}`;
 };
 
-const getBusLink = (from: string, to: string, direction: string): string => {
+const getBusLink = (
+  from: string,
+  to: string,
+  revisionStatus: RevisionStatus
+): string => {
   const now = new Date();
   const hour = now.getHours();
   const minutes = now.getMinutes();
 
-  return `https://qbus.jp/cgi-bin/time/jun.exe?pwd=h%2Fjun.pwd&from=${from}&to=${to}&kai=${direction}&yobi=0&ji=${hour}&fun=${minutes}`;
-};
-
-type LinkData = {
-  label: string;
-  href: string;
-  type: "train" | "bus";
+  return `https://qbus.jp/cgi-bin/time/jun.exe?pwd=h%2Fjun.pwd&from=${from}&to=${to}&kai=${revisionStatus}&yobi=0&ji=${hour}&fun=${minutes}`;
 };
 
 const goingLinks: LinkData[] = [
@@ -36,8 +52,12 @@ const goingLinks: LinkData[] = [
     type: "train",
   },
   {
-    label: "バスリ（行き）",
-    href: getBusLink("000LM0001", "000LM3002", "O"),
+    label: "バス（行き）",
+    href: getBusLink(
+      busStops.miyazaki_eki,
+      busStops.depato_mae,
+      revisionStates.before
+    ),
     type: "bus",
   },
 ];
@@ -50,7 +70,11 @@ const returningLinks: LinkData[] = [
   },
   {
     label: "バス（帰り）",
-    href: getBusLink("000G00129", "000LM0001", "N"),
+    href: getBusLink(
+      busStops.karino_mae,
+      busStops.miyazaki_eki,
+      revisionStates.before
+    ),
     type: "bus",
   },
 ];

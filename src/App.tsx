@@ -31,12 +31,12 @@ type LinkData = {
 
 const goingLinks: LinkData[] = [
   {
-    label: "電車リンク（行き）",
+    label: "電車（行き）",
     href: getTrainLink("going"),
     type: "train",
   },
   {
-    label: "バスリンク（行き・現在時刻に応じた検索）",
+    label: "バスリ（行き）",
     href: getBusLink("000LM0001", "000LM3002", "O"),
     type: "bus",
   },
@@ -44,12 +44,12 @@ const goingLinks: LinkData[] = [
 
 const returningLinks: LinkData[] = [
   {
-    label: "電車リンク（帰り）",
+    label: "電車（帰り）",
     href: getTrainLink("returning"),
     type: "train",
   },
   {
-    label: "バスリンク（帰り・現在時刻に応じた検索）",
+    label: "バス（帰り）",
     href: getBusLink("000G00129", "000LM0001", "N"),
     type: "bus",
   },

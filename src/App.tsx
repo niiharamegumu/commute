@@ -78,7 +78,7 @@ const LinkSection: React.FC<{ title: string; links: LinkData[] }> = ({
 const App: React.FC = () => {
   return (
     <div className="container">
-      <h1>各種交通リンク</h1>
+      <h1>My Links</h1>
       <LinkSection title="行き" links={goingLinks} />
       <LinkSection title="帰り" links={returningLinks} />
     </div>

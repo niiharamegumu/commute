@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import "./App.css";
 
 type LinkData = {
@@ -45,39 +45,71 @@ const getBusLink = (
   return `https://qbus.jp/cgi-bin/time/jun.exe?pwd=h%2Fjun.pwd&from=${from}&to=${to}&kai=${revisionStatus}&yobi=0&ji=${hour}&fun=${minutes}`;
 };
 
-const goingLinks: LinkData[] = [
-  {
-    label: "電車（行き）",
-    href: getTrainLink("going"),
-    type: "train",
-  },
-  {
-    label: "バス（行き）",
-    href: getBusLink(
-      busStops.miyazaki_eki,
-      busStops.depato_mae,
-      revisionStates.before
-    ),
-    type: "bus",
-  },
-];
+const App: React.FC = () => {
+  const [goingLinks, setGoingLinks] = useState<LinkData[]>([]);
+  const [returningLinks, setReturningLinks] = useState<LinkData[]>([]);
+  // current date and time
+  const [time, setTime] = useState(new Date());
 
-const returningLinks: LinkData[] = [
-  {
-    label: "電車（帰り）",
-    href: getTrainLink("returning"),
-    type: "train",
-  },
-  {
-    label: "バス（帰り）",
-    href: getBusLink(
-      busStops.karino_mae,
-      busStops.miyazaki_eki,
-      revisionStates.before
-    ),
-    type: "bus",
-  },
-];
+  const refreshLinks = () => {
+    setGoingLinks([
+      {
+        label: "電車（行き）",
+        href: getTrainLink("going"),
+        type: "train",
+      },
+      {
+        label: "バス（行き）",
+        href: getBusLink(
+          busStops.miyazaki_eki,
+          busStops.depato_mae,
+          revisionStates.before
+        ),
+        type: "bus",
+      },
+    ]);
+
+    setReturningLinks([
+      {
+        label: "電車（帰り）",
+        href: getTrainLink("returning"),
+        type: "train",
+      },
+      {
+        label: "バス（帰り）",
+        href: getBusLink(
+          busStops.karino_mae,
+          busStops.miyazaki_eki,
+          revisionStates.before
+        ),
+        type: "bus",
+      },
+    ]);
+  };
+
+  useEffect(() => {
+    refreshLinks();
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        refreshLinks();
+        setTime(new Date());
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, []);
+
+  return (
+    <div className="container">
+      <h1>{time.toLocaleString()}</h1>
+      <LinkSection title="行き" links={goingLinks} />
+      <LinkSection title="帰り" links={returningLinks} />
+    </div>
+  );
+};
 
 const LinkSection: React.FC<{ title: string; links: LinkData[] }> = ({
   title,
@@ -98,15 +130,5 @@ const LinkSection: React.FC<{ title: string; links: LinkData[] }> = ({
     ))}
   </div>
 );
-
-const App: React.FC = () => {
-  return (
-    <div className="container">
-      <h1>My Links</h1>
-      <LinkSection title="行き" links={goingLinks} />
-      <LinkSection title="帰り" links={returningLinks} />
-    </div>
-  );
-};
 
 export default App;

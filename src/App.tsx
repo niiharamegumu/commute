@@ -17,6 +17,9 @@ const busStops = {
   miyazaki_eki: "000LM0001",
   depato_mae: "000LM3002",
   karino_mae: "000G00129",
+  minamimiyazaki_ekimaedori: "011000002",
+  tachibana_3_chome: "011000008",
+  miyako_city: "000LM0002",
 };
 
 const getTrainLink = (direction: "going" | "returning"): string => {
@@ -48,22 +51,30 @@ const getBusLink = (
 const App: React.FC = () => {
   const [goingLinks, setGoingLinks] = useState<LinkData[]>([]);
   const [returningLinks, setReturningLinks] = useState<LinkData[]>([]);
-  // current date and time
   const [time, setTime] = useState(new Date());
 
   const refreshLinks = () => {
     setGoingLinks([
       {
-        label: "電車（行き）",
+        label: "電車（南宮崎駅→宮崎駅）",
         href: getTrainLink("going"),
         type: "train",
       },
       {
-        label: "バス（行き）",
+        label: "バス（宮崎駅→山形屋デパート前）",
         href: getBusLink(
           busStops.miyazaki_eki,
           busStops.depato_mae,
-          revisionStates.before
+          revisionStates.after
+        ),
+        type: "bus",
+      },
+      {
+        label: "バス（南宮崎駅前通→橘通り3丁目）",
+        href: getBusLink(
+          busStops.minamimiyazaki_ekimaedori,
+          busStops.tachibana_3_chome,
+          revisionStates.after
         ),
         type: "bus",
       },
@@ -71,16 +82,25 @@ const App: React.FC = () => {
 
     setReturningLinks([
       {
-        label: "電車（帰り）",
+        label: "電車（宮崎駅→南宮崎駅）",
         href: getTrainLink("returning"),
         type: "train",
       },
       {
-        label: "バス（帰り）",
+        label: "バス（カリーノ前→宮崎駅）",
         href: getBusLink(
           busStops.karino_mae,
           busStops.miyazaki_eki,
-          revisionStates.before
+          revisionStates.after
+        ),
+        type: "bus",
+      },
+      {
+        label: "バス（橘通り3丁目→宮交シティ）",
+        href: getBusLink(
+          busStops.tachibana_3_chome,
+          busStops.miyako_city,
+          revisionStates.after
         ),
         type: "bus",
       },

@@ -4,7 +4,7 @@ import "./App.css";
 type LinkData = {
   label: string;
   href: string;
-  type: "train" | "bus";
+  type: "train" | "bus" | "unUsed";
 };
 
 const busStops = {
@@ -59,17 +59,17 @@ const App: React.FC = () => {
         type: "train",
       },
       {
-        label: "バス（宮崎駅→山形屋デパート前）",
-        href: getBusLink(busStops.miyazaki_eki, busStops.depato_mae),
-        type: "bus",
-      },
-      {
         label: "バス（南宮崎駅前通→橘通り3丁目）",
         href: getBusLink(
           busStops.minamimiyazaki_ekimaedori,
           busStops.tachibana_3_chome
         ),
         type: "bus",
+      },
+      {
+        label: "バス（宮崎駅→山形屋デパート前）",
+        href: getBusLink(busStops.miyazaki_eki, busStops.depato_mae),
+        type: "unUsed",
       },
     ]);
 
@@ -83,14 +83,14 @@ const App: React.FC = () => {
         type: "train",
       },
       {
-        label: "バス（カリーノ前→宮崎駅）",
-        href: getBusLink(busStops.karino_mae, busStops.miyazaki_eki),
-        type: "bus",
-      },
-      {
         label: "バス（橘通り3丁目→宮交シティ）",
         href: getBusLink(busStops.tachibana_3_chome, busStops.miyako_city),
         type: "bus",
+      },
+      {
+        label: "バス（カリーノ前→宮崎駅）",
+        href: getBusLink(busStops.karino_mae, busStops.miyazaki_eki),
+        type: "unUsed",
       },
     ]);
   };

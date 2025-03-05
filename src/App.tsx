@@ -14,6 +14,7 @@ const busStops = {
   minamimiyazaki_ekimaedori: "011000002",
   tachibana_3_chome: "011000008",
   miyako_city: "000LM0002",
+  nanairo_mae: "011009001",
 };
 
 const trainStations = {
@@ -51,7 +52,7 @@ const App: React.FC = () => {
   const refreshLinks = () => {
     setGoingLinks([
       {
-        label: "電車（南宮崎駅→宮崎駅）",
+        label: "電車（南宮崎駅 → 宮崎駅）",
         href: getTrainLink(
           trainStations.minamimiyazaki,
           trainStations.miyazaki
@@ -59,7 +60,7 @@ const App: React.FC = () => {
         type: "train",
       },
       {
-        label: "バス（南宮崎駅前通→橘通り3丁目）",
+        label: "バス（南宮崎駅前通 → 橘通り3丁目）",
         href: getBusLink(
           busStops.minamimiyazaki_ekimaedori,
           busStops.tachibana_3_chome
@@ -67,7 +68,15 @@ const App: React.FC = () => {
         type: "bus",
       },
       {
-        label: "バス（宮崎駅→山形屋デパート前）",
+        label: "バス（南宮崎駅前通 → 宮崎ナナイロ前）",
+        href: getBusLink(
+          busStops.minamimiyazaki_ekimaedori,
+          busStops.nanairo_mae
+        ),
+        type: "bus",
+      },
+      {
+        label: "バス（宮崎駅 → 山形屋デパート前）",
         href: getBusLink(busStops.miyazaki_eki, busStops.depato_mae),
         type: "unUsed",
       },
@@ -75,7 +84,7 @@ const App: React.FC = () => {
 
     setReturningLinks([
       {
-        label: "電車（宮崎駅→南宮崎駅）",
+        label: "電車（宮崎駅 → 南宮崎駅）",
         href: getTrainLink(
           trainStations.miyazaki,
           trainStations.minamimiyazaki
@@ -83,12 +92,12 @@ const App: React.FC = () => {
         type: "train",
       },
       {
-        label: "バス（橘通り3丁目→宮交シティ）",
+        label: "バス（橘通り3丁目 → 宮交シティ）",
         href: getBusLink(busStops.tachibana_3_chome, busStops.miyako_city),
         type: "bus",
       },
       {
-        label: "バス（カリーノ前→宮崎駅）",
+        label: "バス（カリーノ前 → 宮崎駅）",
         href: getBusLink(busStops.karino_mae, busStops.miyazaki_eki),
         type: "unUsed",
       },

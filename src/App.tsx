@@ -16,18 +16,23 @@ const busStops = {
   miyako_city: "000LM0002",
 };
 
-const getTrainLink = (direction: "going" | "returning"): string => {
+const trainStations = {
+  minamimiyazaki: "南宮崎",
+  miyazaki: "宮崎",
+};
+
+const getTrainLink = (from: string, to: string): string => {
   const now = new Date();
   const year = now.getFullYear();
   const month = (now.getMonth() + 1).toString().padStart(2, "0");
   const day = now.getDate().toString().padStart(2, "0");
+  const hours = now.getHours();
 
-  const baseUrl =
-    direction === "going"
-      ? "https://www.jorudan.co.jp/time/to/%E5%8D%97%E5%AE%AE%E5%B4%8E_%E5%AE%AE%E5%B4%8E/?r=%E6%97%A5%E8%B1%8A%E6%9C%AC%E7%B7%9A"
-      : "https://www.jorudan.co.jp/time/to/%E5%AE%AE%E5%B4%8E_%E5%8D%97%E5%AE%AE%E5%B4%8E/?r=%E6%97%A5%E8%B1%8A%E6%9C%AC%E7%B7%9A";
+  const enFrom = encodeURIComponent(from);
+  const enTo = encodeURIComponent(to);
+  const enR = encodeURIComponent("日豊本線");
 
-  return `${baseUrl}&Dym=${year}${month}&Ddd=${day}`;
+  return `https://www.jorudan.co.jp/time/to/${enFrom}_${enTo}/?r=${enR}&Dym=${year}${month}&Ddd=${day}#time${hours}w`;
 };
 
 const getBusLink = (from: string, to: string): string => {
@@ -47,7 +52,10 @@ const App: React.FC = () => {
     setGoingLinks([
       {
         label: "電車（南宮崎駅→宮崎駅）",
-        href: getTrainLink("going"),
+        href: getTrainLink(
+          trainStations.minamimiyazaki,
+          trainStations.miyazaki
+        ),
         type: "train",
       },
       {
@@ -68,7 +76,10 @@ const App: React.FC = () => {
     setReturningLinks([
       {
         label: "電車（宮崎駅→南宮崎駅）",
-        href: getTrainLink("returning"),
+        href: getTrainLink(
+          trainStations.miyazaki,
+          trainStations.minamimiyazaki
+        ),
         type: "train",
       },
       {

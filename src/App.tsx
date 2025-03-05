@@ -7,12 +7,6 @@ type LinkData = {
   type: "train" | "bus";
 };
 
-type RevisionStatus = "O" | "N";
-const revisionStates: Record<"before" | "after", RevisionStatus> = {
-  before: "O",
-  after: "N",
-};
-
 const busStops = {
   miyazaki_eki: "000LM0001",
   depato_mae: "000LM3002",
@@ -36,16 +30,12 @@ const getTrainLink = (direction: "going" | "returning"): string => {
   return `${baseUrl}&Dym=${year}${month}&Ddd=${day}`;
 };
 
-const getBusLink = (
-  from: string,
-  to: string,
-  revisionStatus: RevisionStatus
-): string => {
+const getBusLink = (from: string, to: string): string => {
   const now = new Date();
   const hour = now.getHours();
   const minutes = now.getMinutes();
 
-  return `https://qbus.jp/cgi-bin/time/jun.exe?pwd=h%2Fjun.pwd&from=${from}&to=${to}&kai=${revisionStatus}&yobi=0&ji=${hour}&fun=${minutes}`;
+  return `https://qbus.jp/cgi-bin/time/jun.exe?pwd=h%2Fjun.pwd&from=${from}&to=${to}&kai=N&yobi=0&ji=${hour}&fun=${minutes}`;
 };
 
 const App: React.FC = () => {
@@ -62,19 +52,14 @@ const App: React.FC = () => {
       },
       {
         label: "バス（宮崎駅→山形屋デパート前）",
-        href: getBusLink(
-          busStops.miyazaki_eki,
-          busStops.depato_mae,
-          revisionStates.after
-        ),
+        href: getBusLink(busStops.miyazaki_eki, busStops.depato_mae),
         type: "bus",
       },
       {
         label: "バス（南宮崎駅前通→橘通り3丁目）",
         href: getBusLink(
           busStops.minamimiyazaki_ekimaedori,
-          busStops.tachibana_3_chome,
-          revisionStates.after
+          busStops.tachibana_3_chome
         ),
         type: "bus",
       },
@@ -88,20 +73,12 @@ const App: React.FC = () => {
       },
       {
         label: "バス（カリーノ前→宮崎駅）",
-        href: getBusLink(
-          busStops.karino_mae,
-          busStops.miyazaki_eki,
-          revisionStates.after
-        ),
+        href: getBusLink(busStops.karino_mae, busStops.miyazaki_eki),
         type: "bus",
       },
       {
         label: "バス（橘通り3丁目→宮交シティ）",
-        href: getBusLink(
-          busStops.tachibana_3_chome,
-          busStops.miyako_city,
-          revisionStates.after
-        ),
+        href: getBusLink(busStops.tachibana_3_chome, busStops.miyako_city),
         type: "bus",
       },
     ]);

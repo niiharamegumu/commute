@@ -17,29 +17,29 @@ const busStops = {
   nanairo_mae: "011009001",
 };
 
-const busDayType = {
-  weekday: 0,
-  saturday: 1,
-  holiday: 2,
-};
-
-const dayToBusTypeMapping: { [key: number]: number } = {
-  0: busDayType.holiday,
-  1: busDayType.weekday,
-  2: busDayType.weekday,
-  3: busDayType.weekday,
-  4: busDayType.weekday,
-  5: busDayType.weekday,
-  6: busDayType.saturday,
-};
-
 const trainStations = {
   minamimiyazaki: "南宮崎",
   miyazaki: "宮崎",
 };
 
+const BUS_TYPE = {
+  weekday: 0,
+  saturday: 1,
+  holiday: 2,
+} as const;
+
+const dayToBusType: { [key: number]: number } = {
+  0: BUS_TYPE.holiday,
+  1: BUS_TYPE.weekday,
+  2: BUS_TYPE.weekday,
+  3: BUS_TYPE.weekday,
+  4: BUS_TYPE.weekday,
+  5: BUS_TYPE.weekday,
+  6: BUS_TYPE.saturday,
+};
+
 let holidaysCache: string[] | null = null;
-const getHolidays = async (): Promise<string[]> => {
+const fetchHolidays = async (): Promise<string[]> => {
   if (holidaysCache) return holidaysCache;
   const res = await fetch("https://holidays-jp.github.io/api/v1/date.json");
   const data = await res.json();
@@ -47,40 +47,35 @@ const getHolidays = async (): Promise<string[]> => {
   return holidaysCache;
 };
 
-const getBusDayTypeFromDate = (date: Date): number => {
-  const dayOfWeek = date.getDay();
-  return dayToBusTypeMapping[dayOfWeek];
-};
-
 const getTrainLink = (from: string, to: string): string => {
   const now = new Date();
   const year = now.getFullYear();
   const month = (now.getMonth() + 1).toString().padStart(2, "0");
   const day = now.getDate().toString().padStart(2, "0");
-  const hours = now.getHours();
-  const enFrom = encodeURIComponent(from);
-  const enTo = encodeURIComponent(to);
-  const enR = encodeURIComponent("日豊本線");
-  return `https://www.jorudan.co.jp/time/to/${enFrom}_${enTo}/?r=${enR}&Dym=${year}${month}&Ddd=${day}#time${hours}w`;
+  const hour = now.getHours();
+  return `https://www.jorudan.co.jp/time/to/${encodeURIComponent(
+    from
+  )}_${encodeURIComponent(to)}/?r=${encodeURIComponent(
+    "日豊本線"
+  )}&Dym=${year}${month}&Ddd=${day}#time${hour}w`;
 };
 
 const getBusLink = async (from: string, to: string): Promise<string> => {
   const now = new Date();
-  const hour = now.getHours();
-  const minutes = now.getMinutes();
-  let busType = getBusDayTypeFromDate(now);
-  const isHoliday = (await getHolidays()).includes(
-    now.toISOString().split("T")[0]
-  );
-  if (isHoliday) {
-    busType = busDayType.holiday;
-  }
-  return `https://qbus.jp/cgi-bin/time/jun.exe?pwd=h%2Fjun.pwd&from=${from}&to=${to}&kai=N&yobi=${busType}&ji=${hour}&fun=${minutes}`;
+  let busType = dayToBusType[now.getDay()];
+  const today = now.toISOString().split("T")[0];
+  if ((await fetchHolidays()).includes(today)) busType = BUS_TYPE.holiday;
+  return `https://qbus.jp/cgi-bin/time/jun.exe?pwd=h%2Fjun.pwd&from=${from}&to=${to}&kai=N&yobi=${busType}&ji=${now.getHours()}&fun=${now.getMinutes()}`;
 };
 
 const App: React.FC = () => {
-  const [goingLinks, setGoingLinks] = useState<LinkData[]>([]);
-  const [returningLinks, setReturningLinks] = useState<LinkData[]>([]);
+  const [links, setLinks] = useState<{
+    going: LinkData[];
+    returning: LinkData[];
+  }>({
+    going: [],
+    returning: [],
+  });
   const [time, setTime] = useState(new Date());
 
   const refreshLinks = async () => {
@@ -92,95 +87,69 @@ const App: React.FC = () => {
       trainStations.miyazaki,
       trainStations.minamimiyazaki
     );
-    const busLink1 = await getBusLink(
-      busStops.minamimiyazaki_ekimaedori,
-      busStops.tachibana_3_chome
-    );
-    const busLink2 = await getBusLink(
-      busStops.minamimiyazaki_ekimaedori,
-      busStops.nanairo_mae
-    );
-    const busLink3 = await getBusLink(
-      busStops.miyazaki_eki,
-      busStops.depato_mae
-    );
-    const busLink4 = await getBusLink(
-      busStops.tachibana_3_chome,
-      busStops.miyako_city
-    );
-    const busLink5 = await getBusLink(
-      busStops.karino_mae,
-      busStops.miyazaki_eki
-    );
-
-    setGoingLinks([
-      {
-        label: "電車（南宮崎駅 → 宮崎駅）",
-        href: trainLink1,
-        type: "train",
-      },
-      {
-        label: "バス（南宮崎駅前通 → 橘通り3丁目）",
-        href: busLink1,
-        type: "bus",
-      },
-      {
-        label: "バス（南宮崎駅前通 → 宮崎ナナイロ前）",
-        href: busLink2,
-        type: "bus",
-      },
-      {
-        label: "バス（宮崎駅 → 山形屋デパート前）",
-        href: busLink3,
-        type: "unUsed",
-      },
-    ]);
-
-    setReturningLinks([
-      {
-        label: "電車（宮崎駅 → 南宮崎駅）",
-        href: trainLink2,
-        type: "train",
-      },
-      {
-        label: "バス（橘通り3丁目 → 宮交シティ）",
-        href: busLink4,
-        type: "bus",
-      },
-      {
-        label: "バス（カリーノ前 → 宮崎駅）",
-        href: busLink5,
-        type: "unUsed",
-      },
-    ]);
+    const [busLink1, busLink2, busLink3, busLink4, busLink5] =
+      await Promise.all([
+        getBusLink(
+          busStops.minamimiyazaki_ekimaedori,
+          busStops.tachibana_3_chome
+        ),
+        getBusLink(busStops.minamimiyazaki_ekimaedori, busStops.nanairo_mae),
+        getBusLink(busStops.miyazaki_eki, busStops.depato_mae),
+        getBusLink(busStops.tachibana_3_chome, busStops.miyako_city),
+        getBusLink(busStops.karino_mae, busStops.miyazaki_eki),
+      ]);
+    setLinks({
+      going: [
+        { label: "電車（南宮崎駅 → 宮崎駅）", href: trainLink1, type: "train" },
+        {
+          label: "バス（南宮崎駅前通 → 橘通り3丁目）",
+          href: busLink1,
+          type: "bus",
+        },
+        {
+          label: "バス（南宮崎駅前通 → 宮崎ナナイロ前）",
+          href: busLink2,
+          type: "bus",
+        },
+        {
+          label: "バス（宮崎駅 → 山形屋デパート前）",
+          href: busLink3,
+          type: "unUsed",
+        },
+      ],
+      returning: [
+        { label: "電車（宮崎駅 → 南宮崎駅）", href: trainLink2, type: "train" },
+        {
+          label: "バス（橘通り3丁目 → 宮交シティ）",
+          href: busLink4,
+          type: "bus",
+        },
+        {
+          label: "バス（カリーノ前 → 宮崎駅）",
+          href: busLink5,
+          type: "unUsed",
+        },
+      ],
+    });
   };
 
   useEffect(() => {
-    (async () => {
-      await refreshLinks();
-      setTime(new Date());
-    })();
-
+    refreshLinks().then(() => setTime(new Date()));
     const handleVisibilityChange = () => {
       if (document.visibilityState === "visible") {
-        (async () => {
-          await refreshLinks();
-          setTime(new Date());
-        })();
+        refreshLinks().then(() => setTime(new Date()));
       }
     };
-
     document.addEventListener("visibilitychange", handleVisibilityChange);
-    return () => {
+    return () =>
       document.removeEventListener("visibilitychange", handleVisibilityChange);
-    };
   }, []);
 
   return (
     <div className="container">
       <h1>{time.toLocaleString()}</h1>
-      <LinkSection title="行き" links={goingLinks} />
-      <LinkSection title="帰り" links={returningLinks} />
+      <LinkSection title="行き" links={links.going} />
+      <LinkSection title="帰り" links={links.returning} />
     </div>
   );
 };
@@ -191,9 +160,9 @@ const LinkSection: React.FC<{ title: string; links: LinkData[] }> = ({
 }) => (
   <div className="section">
     <h2>{title}</h2>
-    {links.map((link, index) => (
+    {links.map((link, i) => (
       <a
-        key={index}
+        key={i}
         href={link.href}
         target="_blank"
         rel="noopener noreferrer"

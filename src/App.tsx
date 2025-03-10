@@ -78,17 +78,18 @@ const App: React.FC = () => {
 	const [time, setTime] = useState(new Date());
 
 	const refreshLinks = async () => {
-		const trainLink1 = getTrainLink(trainStations.minamimiyazaki, trainStations.miyazaki);
-		const trainLink2 = getTrainLink(trainStations.miyazaki, trainStations.minamimiyazaki);
-		const [busLink1, busLink2, busLink3, busLink4, busLink5] = await Promise.all([
-			getBusLink(busStops.minamimiyazaki_ekimaedori, busStops.tachibana_3_chome),
-			getBusLink(busStops.minamimiyazaki_ekimaedori, busStops.nanairo_mae),
-			getBusLink(busStops.miyazaki_eki, busStops.depato_mae),
-			getBusLink(busStops.tachibana_3_chome, busStops.miyako_city),
-			getBusLink(busStops.karino_mae, busStops.miyazaki_eki),
-		]);
+		try {
+			const trainLink1 = getTrainLink(trainStations.minamimiyazaki, trainStations.miyazaki);
+			const trainLink2 = getTrainLink(trainStations.miyazaki, trainStations.minamimiyazaki);
+			const [busLink1, busLink2, busLink3, busLink4, busLink5] = await Promise.all([
+				getBusLink(busStops.minamimiyazaki_ekimaedori, busStops.tachibana_3_chome),
+				getBusLink(busStops.minamimiyazaki_ekimaedori, busStops.nanairo_mae),
+				getBusLink(busStops.miyazaki_eki, busStops.depato_mae),
+				getBusLink(busStops.tachibana_3_chome, busStops.miyako_city),
+				getBusLink(busStops.karino_mae, busStops.miyazaki_eki),
+			]);
 
-		setLinks({
+			setLinks({
 			going: [
 				{
 					label: "電車（南宮崎駅 → 宮崎駅）",
@@ -129,16 +130,26 @@ const App: React.FC = () => {
 				},
 			],
 		});
+		} catch (error) {
+			console.error("Error refreshing links:", error);
+		}
 	};
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
 	useEffect(() => {
-		refreshLinks().then(() => setTime(new Date()));
+		const updateLinksAndTime = async () => {
+			await refreshLinks();
+			setTime(new Date());
+		};
+
+		updateLinksAndTime();
+		
 		const handleVisibilityChange = () => {
 			if (document.visibilityState === "visible") {
-				refreshLinks().then(() => setTime(new Date()));
+				updateLinksAndTime();
 			}
 		};
+		
 		document.addEventListener("visibilitychange", handleVisibilityChange);
 		return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
 	}, []);

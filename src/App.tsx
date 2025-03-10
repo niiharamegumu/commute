@@ -2,10 +2,18 @@ import type React from "react";
 import { useEffect, useState } from "react";
 import "./App.css";
 
+const LINK_TYPE = {
+	TRAIN: "train",
+	BUS: "bus",
+	UNUSED: "unUsed",
+} as const;
+
+type LinkType = (typeof LINK_TYPE)[keyof typeof LINK_TYPE];
+
 type LinkData = {
 	label: string;
 	href: string;
-	type: "train" | "bus" | "unUsed";
+	type: LinkType;
 };
 
 const busStops = {
@@ -90,46 +98,46 @@ const App: React.FC = () => {
 			]);
 
 			setLinks({
-			going: [
-				{
-					label: "電車（南宮崎駅 → 宮崎駅）",
-					href: trainLink1,
-					type: "train",
-				},
-				{
-					label: "バス（南宮崎駅前通 → 橘通り3丁目）",
-					href: busLink1,
-					type: "bus",
-				},
-				{
-					label: "バス（南宮崎駅前通 → 宮崎ナナイロ前）",
-					href: busLink2,
-					type: "bus",
-				},
-				{
-					label: "バス（宮崎駅 → 山形屋デパート前）",
-					href: busLink3,
-					type: "unUsed",
-				},
-			],
-			returning: [
-				{
-					label: "電車（宮崎駅 → 南宮崎駅）",
-					href: trainLink2,
-					type: "train",
-				},
-				{
-					label: "バス（橘通り3丁目 → 宮交シティ）",
-					href: busLink4,
-					type: "bus",
-				},
-				{
-					label: "バス（カリーノ前 → 宮崎駅）",
-					href: busLink5,
-					type: "unUsed",
-				},
-			],
-		});
+				going: [
+					{
+						label: "電車（南宮崎駅 → 宮崎駅）",
+						href: trainLink1,
+						type: LINK_TYPE.TRAIN,
+					},
+					{
+						label: "バス（南宮崎駅前通 → 橘通り3丁目）",
+						href: busLink1,
+						type: LINK_TYPE.BUS,
+					},
+					{
+						label: "バス（南宮崎駅前通 → 宮崎ナナイロ前）",
+						href: busLink2,
+						type: LINK_TYPE.BUS,
+					},
+					{
+						label: "バス（宮崎駅 → 山形屋デパート前）",
+						href: busLink3,
+						type: LINK_TYPE.UNUSED,
+					},
+				],
+				returning: [
+					{
+						label: "電車（宮崎駅 → 南宮崎駅）",
+						href: trainLink2,
+						type: LINK_TYPE.TRAIN,
+					},
+					{
+						label: "バス（橘通り3丁目 → 宮交シティ）",
+						href: busLink4,
+						type: LINK_TYPE.BUS,
+					},
+					{
+						label: "バス（カリーノ前 → 宮崎駅）",
+						href: busLink5,
+						type: LINK_TYPE.UNUSED,
+					},
+				],
+			});
 		} catch (error) {
 			console.error("Error refreshing links:", error);
 		}
@@ -143,13 +151,13 @@ const App: React.FC = () => {
 		};
 
 		updateLinksAndTime();
-		
+
 		const handleVisibilityChange = () => {
 			if (document.visibilityState === "visible") {
 				updateLinksAndTime();
 			}
 		};
-		
+
 		document.addEventListener("visibilitychange", handleVisibilityChange);
 		return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
 	}, []);

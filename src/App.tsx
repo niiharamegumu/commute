@@ -1,5 +1,5 @@
-import type React from "react";
-import { useCallback, useEffect, useState } from "react";
+import React from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import "./App.css";
 
 const LINK_TYPE = {
@@ -161,11 +161,18 @@ const App: React.FC = () => {
 		return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
 	}, [refreshLinks]);
 
+	const memoizedLinkSections = useMemo(() => {
+		return {
+			going: <LinkSection title="行き" links={links.going} />,
+			returning: <LinkSection title="帰り" links={links.returning} />,
+		};
+	}, [links.going, links.returning]);
+
 	return (
 		<div className="container">
 			<h1>{time.toLocaleString()}</h1>
-			<LinkSection title="行き" links={links.going} />
-			<LinkSection title="帰り" links={links.returning} />
+			{memoizedLinkSections.going}
+			{memoizedLinkSections.returning}
 		</div>
 	);
 };
@@ -173,7 +180,7 @@ const App: React.FC = () => {
 const LinkSection: React.FC<{
 	title: string;
 	links: LinkData[];
-}> = ({ title, links }) => (
+}> = React.memo(({ title, links }) => (
 	<div className="section">
 		<h2>{title}</h2>
 		{links.map((link) => (
@@ -188,6 +195,6 @@ const LinkSection: React.FC<{
 			</a>
 		))}
 	</div>
-);
+));
 
 export default App;

@@ -1,5 +1,5 @@
 import type React from "react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import "./App.css";
 
 const LINK_TYPE = {
@@ -85,7 +85,7 @@ const App: React.FC = () => {
 	});
 	const [time, setTime] = useState(new Date());
 
-	const refreshLinks = async () => {
+	const refreshLinks = useCallback(async () => {
 		try {
 			const trainLink1 = getTrainLink(trainStations.minamimiyazaki, trainStations.miyazaki);
 			const trainLink2 = getTrainLink(trainStations.miyazaki, trainStations.minamimiyazaki);
@@ -141,9 +141,8 @@ const App: React.FC = () => {
 		} catch (error) {
 			console.error("Error refreshing links:", error);
 		}
-	};
+	}, []);
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
 	useEffect(() => {
 		const updateLinksAndTime = async () => {
 			await refreshLinks();
@@ -160,7 +159,7 @@ const App: React.FC = () => {
 
 		document.addEventListener("visibilitychange", handleVisibilityChange);
 		return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
-	}, []);
+	}, [refreshLinks]);
 
 	return (
 		<div className="container">

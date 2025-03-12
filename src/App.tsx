@@ -5,12 +5,18 @@ import { LINK_TYPE, busStops, trainStations, BUS_TYPE, dayToBusType } from "./co
 import type { LinkData } from "./types";
 
 let holidaysCache: string[] | null = null;
+let holidaysPromise: Promise<string[]> | null = null;
+
 const fetchHolidays = async (): Promise<string[]> => {
 	if (holidaysCache) return holidaysCache;
-	const res = await fetch("https://holidays-jp.github.io/api/v1/date.json");
-	const data = await res.json();
-	holidaysCache = Object.keys(data);
-	return holidaysCache;
+	if (holidaysPromise) return holidaysPromise;
+	holidaysPromise = (async () => {
+		const res = await fetch("https://holidays-jp.github.io/api/v1/date.json");
+		const data = await res.json();
+		holidaysCache = Object.keys(data);
+		return holidaysCache;
+	})();
+	return holidaysPromise;
 };
 
 const getTrainLink = (from: string, to: string): string => {

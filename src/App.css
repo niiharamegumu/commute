@@ -63,3 +63,24 @@ h1 {
 .link:hover {
   opacity: 0.8;
 }
+
+.header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.error-message {
+  background-color: #ffebee;
+  color: #c62828;
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 15px;
+  border-left: 4px solid #c62828;
+}
+
+.loading {
+  text-align: center;
+  margin: 10px 0;
+  font-style: italic;
+  color: #666;
+}

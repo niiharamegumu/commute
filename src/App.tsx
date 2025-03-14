@@ -45,8 +45,12 @@ const App: React.FC = () => {
 		returning: [],
 	});
 	const [time, setTime] = useState(new Date());
+	const [loading, setLoading] = useState(false);
+	const [error, setError] = useState<string | null>(null);
 
 	const refreshLinks = useCallback(async () => {
+		setLoading(true);
+		setError(null);
 		try {
 			const trainLink1 = getTrainLink(trainStations.minamimiyazaki, trainStations.miyazaki);
 			const trainLink2 = getTrainLink(trainStations.miyazaki, trainStations.minamimiyazaki);
@@ -101,6 +105,9 @@ const App: React.FC = () => {
 			});
 		} catch (error) {
 			console.error("Error refreshing links:", error);
+			setError("リンクの更新に失敗しました。もう一度お試しください。");
+		} finally {
+			setLoading(false);
 		}
 	}, []);
 
@@ -118,8 +125,16 @@ const App: React.FC = () => {
 			}
 		};
 
+		// 時間を1秒ごとに更新
+		const timeInterval = setInterval(() => {
+			setTime(new Date());
+		}, 1000);
+
 		document.addEventListener("visibilitychange", handleVisibilityChange);
-		return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+		return () => {
+			document.removeEventListener("visibilitychange", handleVisibilityChange);
+			clearInterval(timeInterval);
+		};
 	}, [refreshLinks]);
 
 	const memoizedLinkSections = useMemo(() => {
@@ -131,30 +146,42 @@ const App: React.FC = () => {
 
 	return (
 		<div className="container">
-			<h1>{time.toLocaleString()}</h1>
+			<div className="header">
+				<h1>{time.toLocaleString()}</h1>
+			</div>
+
+			{error && <div className="error-message">{error}</div>}
+			{loading && <div className="loading">リンクを更新中...</div>}
+
 			{memoizedLinkSections.going}
 			{memoizedLinkSections.returning}
 		</div>
 	);
 };
 
-const LinkSection: React.FC<{
+interface LinkSectionProps {
 	title: string;
 	links: LinkData[];
-}> = React.memo(({ title, links }) => (
+}
+
+const LinkSection: React.FC<LinkSectionProps> = React.memo(({ title, links }) => (
 	<div className="section">
 		<h2>{title}</h2>
-		{links.map((link) => (
-			<a
-				key={link.href}
-				href={link.href}
-				target="_blank"
-				rel="noopener noreferrer"
-				className={`link ${link.type}`}
-			>
-				{link.label}
-			</a>
-		))}
+		{links.length === 0 ? (
+			<p>リンクがありません</p>
+		) : (
+			links.map((link) => (
+				<a
+					key={link.href}
+					href={link.href}
+					target="_blank"
+					rel="noopener noreferrer"
+					className={`link ${link.type}`}
+				>
+					{link.label}
+				</a>
+			))
+		)}
 	</div>
 ));
 

@@ -1,8 +1,9 @@
-import React from "react";
+import type { FC } from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import "./App.css";
 import { LINK_TYPE, busStops, trainStations, BUS_TYPE, dayToBusType } from "./constants";
 import type { LinkData } from "./types";
+import LinkSection from "./components/LinkSection";
 
 let holidaysCache: string[] | null = null;
 let holidaysPromise: Promise<string[]> | null = null;
@@ -36,7 +37,7 @@ const getBusLink = async (from: string, to: string): Promise<string> => {
 	return `https://qbus.jp/cgi-bin/time/jun.exe?pwd=h%2Fjun.pwd&from=${from}&to=${to}&kai=N&yobi=${busType}&ji=${now.getHours()}&fun=${now.getMinutes()}`;
 };
 
-const App: React.FC = () => {
+const App: FC = () => {
 	const [links, setLinks] = useState<{
 		going: LinkData[];
 		returning: LinkData[];
@@ -158,31 +159,5 @@ const App: React.FC = () => {
 		</div>
 	);
 };
-
-interface LinkSectionProps {
-	title: string;
-	links: LinkData[];
-}
-
-const LinkSection: React.FC<LinkSectionProps> = React.memo(({ title, links }) => (
-	<div className="section">
-		<h2>{title}</h2>
-		{links.length === 0 ? (
-			<p>リンクがありません</p>
-		) : (
-			links.map((link) => (
-				<a
-					key={link.href}
-					href={link.href}
-					target="_blank"
-					rel="noopener noreferrer"
-					className={`link ${link.type}`}
-				>
-					{link.label}
-				</a>
-			))
-		)}
-	</div>
-));
 
 export default App;

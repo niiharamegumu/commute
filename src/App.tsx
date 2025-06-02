@@ -2,7 +2,7 @@ import type { FC } from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import "./App.css";
 import { LINK_TYPE, busStops, trainStations, BUS_TYPE, dayToBusType } from "./constants";
-import type { LinkData } from "./types";
+import type { LinkData, LinkType } from "./types";
 import LinkSection from "./components/LinkSection";
 
 let holidaysCache: string[] | null = null;
@@ -55,13 +55,60 @@ const App: FC = () => {
 		try {
 			const trainLink1 = getTrainLink(trainStations.minamimiyazaki, trainStations.miyazaki);
 			const trainLink2 = getTrainLink(trainStations.miyazaki, trainStations.minamimiyazaki);
-			const [busLink1, busLink2, busLink3, busLink4, busLink5] = await Promise.all([
-				getBusLink(busStops.minamimiyazaki_ekimaedori, busStops.tachibana_3_chome),
-				getBusLink(busStops.minamimiyazaki_ekimaedori, busStops.nanairo_mae),
-				getBusLink(busStops.miyazaki_eki, busStops.depato_mae),
-				getBusLink(busStops.tachibana_3_chome, busStops.miyako_city),
-				getBusLink(busStops.karino_mae, busStops.miyazaki_eki),
-			]);
+
+			// バスルート設定の型定義
+			type BusRouteConfig = {
+				from: string;
+				to: string;
+				label: string;
+				type: LinkType;
+			};
+
+			// バスリンク情報の定義
+			const busRoutesConfig: Record<string, BusRouteConfig> = {
+				minamimiyazaki_to_tachibana3: {
+					from: busStops.minamimiyazaki_ekimaedori,
+					to: busStops.tachibana_3_chome,
+					label: "バス（南宮崎駅前通 → 橘通り3丁目）",
+					type: LINK_TYPE.BUS,
+				},
+				minamimiyazaki_to_nanairo: {
+					from: busStops.minamimiyazaki_ekimaedori,
+					to: busStops.nanairo_mae,
+					label: "バス（南宮崎駅前通 → 宮崎ナナイロ前）",
+					type: LINK_TYPE.BUS,
+				},
+				miyazaki_to_depato: {
+					from: busStops.miyazaki_eki,
+					to: busStops.depato_mae,
+					label: "バス（宮崎駅 → 山形屋デパート前）",
+					type: LINK_TYPE.UNUSED,
+				},
+				tachibana_to_miyako: {
+					from: busStops.tachibana_3_chome,
+					to: busStops.miyako_city,
+					label: "バス（橘通り3丁目 → 宮交シティ）",
+					type: LINK_TYPE.BUS,
+				},
+				karino_to_miyazaki: {
+					from: busStops.karino_mae,
+					to: busStops.miyazaki_eki,
+					label: "バス（カリーノ前 → 宮崎駅）",
+					type: LINK_TYPE.UNUSED,
+				},
+			};
+
+			// バスリンクの取得
+			const busLinks: Record<string, LinkData> = {};
+			await Promise.all(
+				Object.entries(busRoutesConfig).map(async ([key, config]) => {
+					busLinks[key] = {
+						label: config.label,
+						href: await getBusLink(config.from, config.to),
+						type: config.type,
+					};
+				}),
+			);
 
 			setLinks({
 				going: [
@@ -70,21 +117,9 @@ const App: FC = () => {
 						href: trainLink1,
 						type: LINK_TYPE.TRAIN,
 					},
-					{
-						label: "バス（南宮崎駅前通 → 橘通り3丁目）",
-						href: busLink1,
-						type: LINK_TYPE.BUS,
-					},
-					{
-						label: "バス（南宮崎駅前通 → 宮崎ナナイロ前）",
-						href: busLink2,
-						type: LINK_TYPE.BUS,
-					},
-					{
-						label: "バス（宮崎駅 → 山形屋デパート前）",
-						href: busLink3,
-						type: LINK_TYPE.UNUSED,
-					},
+					busLinks.minamimiyazaki_to_tachibana3,
+					busLinks.minamimiyazaki_to_nanairo,
+					busLinks.miyazaki_to_depato,
 				],
 				returning: [
 					{
@@ -92,16 +127,8 @@ const App: FC = () => {
 						href: trainLink2,
 						type: LINK_TYPE.TRAIN,
 					},
-					{
-						label: "バス（橘通り3丁目 → 宮交シティ）",
-						href: busLink4,
-						type: LINK_TYPE.BUS,
-					},
-					{
-						label: "バス（カリーノ前 → 宮崎駅）",
-						href: busLink5,
-						type: LINK_TYPE.UNUSED,
-					},
+					busLinks.tachibana_to_miyako,
+					busLinks.karino_to_miyazaki,
 				],
 			});
 		} catch (error) {

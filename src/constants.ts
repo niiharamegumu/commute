@@ -10,6 +10,7 @@ export const busStops = {
 	karino_mae: "000G00129",
 	minamimiyazaki_ekimaedori: "011000002",
 	tachibana_3_chome: "011000008",
+	tachibana_1_chome: "000G00128",
 	miyako_city: "000LM0002",
 	nanairo_mae: "011009001",
 } as const;

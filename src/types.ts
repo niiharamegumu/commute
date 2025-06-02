@@ -7,3 +7,10 @@ export type LinkData = {
 	href: string;
 	type: LinkType;
 };
+
+export type BusRouteConfig = {
+	from: string;
+	to: string;
+	label: string;
+	type: LinkType;
+};

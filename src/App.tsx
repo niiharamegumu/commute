@@ -2,7 +2,7 @@ import type { FC } from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import "./App.css";
 import { LINK_TYPE, busStops, trainStations, BUS_TYPE, dayToBusType } from "./constants";
-import type { BusRouteConfig, LinkData } from "./types";
+import type { BusRouteConfig, LinkData, LinkType } from "./types";
 import LinkSection from "./components/LinkSection";
 
 let holidaysCache: string[] | null = null;
@@ -37,6 +37,17 @@ const getBusLink = async (from: string, to: string): Promise<string> => {
 	return `https://qbus.jp/cgi-bin/time/jun.exe?pwd=h%2Fjun.pwd&from=${from}&to=${to}&kai=N&yobi=${busType}&ji=${now.getHours()}&fun=${now.getMinutes()}`;
 };
 
+const buildRouteLabels = (
+	fromName: string,
+	toName: string,
+): Pick<LinkData, "label" | "fromLabel" | "toLabel"> => {
+	return {
+		label: `${fromName}→${toName}`,
+		fromLabel: fromName,
+		toLabel: toName,
+	};
+};
+
 const App: FC = () => {
 	const [links, setLinks] = useState<{
 		going: LinkData[];
@@ -48,10 +59,11 @@ const App: FC = () => {
 	const [time, setTime] = useState(new Date());
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
+	const [activeMode, setActiveMode] = useState<LinkType>(LINK_TYPE.TRAIN);
 
-	const refreshLinks = useCallback(async () => {
-		setLoading(true);
-		setError(null);
+		const refreshLinks = useCallback(async () => {
+			setLoading(true);
+			setError(null);
 		try {
 			const trainLink1 = getTrainLink(trainStations.minamimiyazaki, trainStations.miyazaki);
 			const trainLink2 = getTrainLink(trainStations.miyazaki, trainStations.minamimiyazaki);
@@ -61,43 +73,43 @@ const App: FC = () => {
 				minamimiyazaki_to_tachibana1: {
 					from: busStops.minamimiyazaki_ekimaedori,
 					to: busStops.tachibana_1_chome,
-					label: "バス（南宮崎駅前通 → 橘通り1丁目）",
+					...buildRouteLabels("南宮崎駅前通", "橘通り1丁目"),
 					type: LINK_TYPE.BUS,
 				},
 				minamimiyazaki_to_tachibana3: {
 					from: busStops.minamimiyazaki_ekimaedori,
 					to: busStops.tachibana_3_chome,
-					label: "バス（南宮崎駅前通 → 橘通り3丁目）",
+					...buildRouteLabels("南宮崎駅前通", "橘通り3丁目"),
 					type: LINK_TYPE.UNUSED,
 				},
 				minamimiyazaki_to_nanairo: {
 					from: busStops.minamimiyazaki_ekimaedori,
 					to: busStops.nanairo_mae,
-					label: "バス（南宮崎駅前通 → 宮崎ナナイロ前）",
+					...buildRouteLabels("南宮崎駅前通", "宮崎ナナイロ前"),
 					type: LINK_TYPE.UNUSED,
 				},
 				miyazaki_to_depato: {
 					from: busStops.miyazaki_eki,
 					to: busStops.depato_mae,
-					label: "バス（宮崎駅 → 山形屋デパート前）",
+					...buildRouteLabels("宮崎駅", "山形屋デパート前"),
 					type: LINK_TYPE.UNUSED,
 				},
 				tachibana1_to_miyako: {
 					from: busStops.tachibana_1_chome,
 					to: busStops.miyako_city,
-					label: "バス（橘通り1丁目 → 宮交シティ）",
+					...buildRouteLabels("橘通り1丁目", "宮交シティ"),
 					type: LINK_TYPE.BUS,
 				},
 				tachibana3_to_miyako: {
 					from: busStops.tachibana_3_chome,
 					to: busStops.miyako_city,
-					label: "バス（橘通り3丁目 → 宮交シティ）",
+					...buildRouteLabels("橘通り3丁目", "宮交シティ"),
 					type: LINK_TYPE.UNUSED,
 				},
 				karino_to_miyazaki: {
 					from: busStops.karino_mae,
 					to: busStops.miyazaki_eki,
-					label: "バス（カリーノ前 → 宮崎駅）",
+					...buildRouteLabels("カリーノ前", "宮崎駅"),
 					type: LINK_TYPE.UNUSED,
 				},
 			};
@@ -110,14 +122,19 @@ const App: FC = () => {
 						label: config.label,
 						href: await getBusLink(config.from, config.to),
 						type: config.type,
+						fromLabel: config.fromLabel,
+						toLabel: config.toLabel,
 					};
 				}),
 			);
 
+			const outboundTrainRoute = buildRouteLabels(trainStations.minamimiyazaki, trainStations.miyazaki);
+			const inboundTrainRoute = buildRouteLabels(trainStations.miyazaki, trainStations.minamimiyazaki);
+
 			setLinks({
 				going: [
 					{
-						label: "電車（南宮崎駅 → 宮崎駅）",
+						...outboundTrainRoute,
 						href: trainLink1,
 						type: LINK_TYPE.TRAIN,
 					},
@@ -128,7 +145,7 @@ const App: FC = () => {
 				],
 				returning: [
 					{
-						label: "電車（宮崎駅 → 南宮崎駅）",
+						...inboundTrainRoute,
 						href: trainLink2,
 						type: LINK_TYPE.TRAIN,
 					},
@@ -171,24 +188,55 @@ const App: FC = () => {
 		};
 	}, [refreshLinks]);
 
-	const memoizedLinkSections = useMemo(() => {
+	const filteredLinks = useMemo(() => {
+		if (activeMode === LINK_TYPE.TRAIN) {
+			return {
+				going: links.going.filter((link) => link.type === LINK_TYPE.TRAIN),
+				returning: links.returning.filter((link) => link.type === LINK_TYPE.TRAIN),
+			};
+		}
+
 		return {
-			going: <LinkSection title="行き" links={links.going} />,
-			returning: <LinkSection title="帰り" links={links.returning} />,
+			going: links.going.filter((link) => link.type !== LINK_TYPE.TRAIN),
+			returning: links.returning.filter((link) => link.type !== LINK_TYPE.TRAIN),
 		};
-	}, [links.going, links.returning]);
+	}, [activeMode, links.going, links.returning]);
 
 	return (
-		<div className="container">
-			<div className="header">
-				<h1>{time.toLocaleString()}</h1>
-			</div>
+		<div className="app-shell">
+			<main className="surface">
+				<header className="page-header">
+					<time className="timestamp" dateTime={time.toISOString()}>
+						{time.toLocaleString()}
+					</time>
+					<nav className="tabs" aria-label="移動手段の選択">
+						<button
+							type="button"
+							className={`tab ${activeMode === LINK_TYPE.TRAIN ? "tab-active" : ""}`}
+							onClick={() => setActiveMode(LINK_TYPE.TRAIN)}
+							aria-pressed={activeMode === LINK_TYPE.TRAIN}
+						>
+							電車
+						</button>
+						<button
+							type="button"
+							className={`tab ${activeMode === LINK_TYPE.BUS ? "tab-active" : ""}`}
+							onClick={() => setActiveMode(LINK_TYPE.BUS)}
+							aria-pressed={activeMode === LINK_TYPE.BUS}
+						>
+							バス
+						</button>
+					</nav>
+				</header>
 
-			{error && <div className="error-message">{error}</div>}
-			{loading && <div className="loading">リンクを更新中...</div>}
+				{error && <div className="inline-message error-message">{error}</div>}
+				{loading && <div className="inline-message loading">リンクを更新中...</div>}
 
-			{memoizedLinkSections.going}
-			{memoizedLinkSections.returning}
+				<div className="sections">
+					<LinkSection title="行き" links={filteredLinks.going} />
+					<LinkSection title="帰り" links={filteredLinks.returning} />
+				</div>
+			</main>
 		</div>
 	);
 };

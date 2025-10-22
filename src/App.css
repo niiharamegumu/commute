@@ -152,61 +152,35 @@ body {
 	transform: translateY(0);
 }
 
-.link-tag {
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	padding: 8px 18px;
-	border-radius: 9999px;
-	font-size: 0.8rem;
-	font-weight: 700;
-	letter-spacing: 0.08em;
-	text-transform: uppercase;
-	color: #ffffff;
-	flex: 0 0 auto;
-}
-
 .link-route {
-	flex: 1;
-	display: flex;
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
 	align-items: center;
-	gap: 12px;
+	gap: 10px;
+	flex: 1;
 }
 
 .route-text {
-	font-size: 1.2rem;
+	font-size: clamp(0.85rem, 2.5vw, 1.2rem);
 	font-weight: 600;
 	color: inherit;
 	line-height: 1.45;
-	flex: 1 1 50%;
+	min-width: 0;
+	white-space: normal;
+	word-break: break-word;
 }
 
 .route-from {
-	text-align: center;
+	text-align: left;
 }
 
 .route-to {
-	text-align: center;
+	text-align: right;
 }
 
 .route-arrow {
 	font-size: 1.15rem;
 	opacity: 0.6;
-	flex: 0 0 auto;
-}
-
-.tag-train {
-	background: linear-gradient(135deg, #0a84ff, #5ac8fa);
-}
-
-.tag-bus {
-	background: linear-gradient(135deg, #ff9f0a, #ffd60a);
-	color: #2c1a00;
-}
-
-.tag-unUsed {
-	background: linear-gradient(135deg, #f2f2f7, #e5e5ea);
-	color: #3a3a3c;
 }
 
 .inline-message {
@@ -231,9 +205,21 @@ body {
 }
 
 @media (max-width: 600px) {
+	.app-shell {
+		padding: 24px 0;
+		align-items: stretch;
+		justify-content: center;
+	}
+
 	.surface {
-		padding: 28px 24px;
-		border-radius: 28px;
+		padding: 20px 16px;
+		border-radius: 0;
+		max-width: none;
+		width: 100%;
+		margin: 0;
+		background: transparent;
+		box-shadow: none;
+		border: none;
 	}
 
 	.timestamp {
@@ -247,5 +233,9 @@ body {
 
 	.tab {
 		flex: 1;
+	}
+
+	.link-card {
+		padding: 16px 18px;
 	}
 }

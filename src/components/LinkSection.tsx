@@ -6,10 +6,12 @@ interface LinkSectionProps {
 	links: LinkData[];
 }
 
-const TYPE_LABELS: Record<LinkData["type"], string> = {
-	train: "電車",
-	bus: "バス",
-	unUsed: "予備",
+const splitRouteLabel = (label: string): { from: string; to: string } => {
+	const [rawFrom = label, rawTo = ""] = label.split("→");
+	return {
+		from: rawFrom.trim(),
+		to: rawTo.trim(),
+	};
 };
 
 const LinkSection: FC<LinkSectionProps> = memo(({ title, links }) => {
@@ -21,8 +23,11 @@ const LinkSection: FC<LinkSectionProps> = memo(({ title, links }) => {
 			{links.length === 0 ? (
 				<p className="empty-message">リンクがありません</p>
 			) : (
-				<ul className="link-list">
-					{links.map((link) => (
+			<ul className="link-list">
+				{links.map((link) => {
+					const { from, to } = splitRouteLabel(link.label);
+					const hasDestination = to.length > 0;
+					return (
 						<li key={link.href}>
 							<a
 								href={link.href}
@@ -30,18 +35,22 @@ const LinkSection: FC<LinkSectionProps> = memo(({ title, links }) => {
 								rel="noopener noreferrer"
 								className={`link-card link-${link.type}`}
 							>
-								<span className={`link-tag tag-${link.type}`}>{TYPE_LABELS[link.type]}</span>
 								<span className="link-route">
-									<span className="route-text route-from">{link.fromLabel}</span>
-									<span className="route-arrow" aria-hidden="true">
-										→
-									</span>
-									<span className="route-text route-to">{link.toLabel}</span>
+									<span className="route-text route-from">{from}</span>
+									{hasDestination ? (
+										<>
+											<span className="route-arrow" aria-hidden="true">
+												→
+											</span>
+											<span className="route-text route-to">{to}</span>
+										</>
+									) : null}
 								</span>
 							</a>
 						</li>
-					))}
-				</ul>
+					);
+				})}
+			</ul>
 			)}
 		</section>
 	);
